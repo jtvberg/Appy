@@ -191,7 +191,7 @@ struct ContentView: View {
                     get: { prefs.groupingMode },
                     set: { prefs.groupingMode = $0 }
                 )) {
-                    Text("—").tag(GroupingMode.none)
+                    Image(systemName: "app").tag(GroupingMode.none)
                     Image(systemName: "folder").tag(GroupingMode.manual)
                     Image(systemName: "tag").tag(GroupingMode.category)
                 }
@@ -374,7 +374,7 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                             .frame(width: prefs.listIconSize * 0.5)
 
-                        Image(systemName: "tag.fill")
+                        Image(systemName: "tag.square.fill")
                             .resizable()
                             .scaledToFit()
                             .frame(width: prefs.listIconSize, height: prefs.listIconSize)
@@ -428,6 +428,7 @@ struct ContentView: View {
                         appCount: catApps.count,
                         iconSize: prefs.iconSize,
                         groupID: UUID(), // category groups don't have a real UUID
+                        systemImage: "tag.square.fill",
                         action: { expandedCategory = category },
                         onDropApp: { _ in }, // no drop for categories
                         renamingGroupID: .constant(nil)

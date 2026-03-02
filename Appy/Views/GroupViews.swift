@@ -62,6 +62,7 @@ struct GroupHeaderView: View {
     let appCount: Int
     let iconSize: CGFloat
     let groupID: UUID
+    var systemImage: String = "folder.fill"
     let action: () -> Void
     let onDropApp: (String) -> Void
     var onRename: ((String) -> Void)? = nil
@@ -77,7 +78,7 @@ struct GroupHeaderView: View {
     var body: some View {
         VStack(spacing: 4) {
             Button(action: action) {
-                Image(systemName: "folder.fill")
+                Image(systemName: systemImage)
                     .resizable()
                     .scaledToFit()
                     .padding(iconSize * 0.1)
