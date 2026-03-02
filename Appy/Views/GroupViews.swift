@@ -72,7 +72,8 @@ struct GroupHeaderView: View {
 
     private var isEditing: Bool { renamingGroupID == groupID }
 
-    private let nameHeight: CGFloat = 28
+    private var labelFontSize: CGFloat { max(9, min(14, iconSize * 0.16)) }
+    private var nameHeight: CGFloat { max(28, labelFontSize * 3.5) }
 
     var body: some View {
         VStack(spacing: 4) {
@@ -90,7 +91,7 @@ struct GroupHeaderView: View {
                 SelectAllTextField(
                     text: $editName,
                     onCommit: commitRename,
-                    fontSize: NSFont.systemFontSize(for: .mini),
+                    fontSize: labelFontSize,
                     alignment: .center
                 )
                 .frame(width: iconSize + 16, height: nameHeight)
@@ -99,8 +100,7 @@ struct GroupHeaderView: View {
             } else {
                 Button(action: action) {
                     Text(name)
-                        .font(.caption2)
-                        .fontWeight(.medium)
+                        .font(.system(size: labelFontSize, weight: .medium))
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                         .frame(width: iconSize + 16, height: nameHeight, alignment: .top)
@@ -222,12 +222,13 @@ struct GroupExpandedView: View {
             // Compact back-nav header
             HStack(spacing: 4) {
                 Button(action: onBack) {
-                    HStack(spacing: 2) {
+                    HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
+                            .font(.body.weight(.semibold))
                         Text(groupName)
+                            .font(.body.weight(.medium))
                             .lineLimit(1)
                     }
-                    .font(.caption)
                     .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -235,7 +236,7 @@ struct GroupExpandedView: View {
                 Spacer()
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 3)
+            .padding(.vertical, 8)
 
             Divider()
 
