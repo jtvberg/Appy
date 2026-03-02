@@ -57,6 +57,10 @@ final class PreferencesManager {
         didSet { defaults.set(Double(iconSize), forKey: Keys.iconSize) }
     }
 
+    var listIconSize: CGFloat {
+        didSet { defaults.set(Double(listIconSize), forKey: Keys.listIconSize) }
+    }
+
     var sortOrder: SortOrder {
         didSet { defaults.set(sortOrder.rawValue, forKey: Keys.sortOrder) }
     }
@@ -101,6 +105,7 @@ final class PreferencesManager {
     init() {
         self.viewMode = ViewMode(rawValue: defaults.string(forKey: Keys.viewMode) ?? "") ?? .iconWithName
         self.iconSize = CGFloat(defaults.double(forKey: Keys.iconSize) != 0 ? defaults.double(forKey: Keys.iconSize) : 64)
+        self.listIconSize = CGFloat(defaults.double(forKey: Keys.listIconSize) != 0 ? defaults.double(forKey: Keys.listIconSize) : 24)
         self.sortOrder = SortOrder(rawValue: defaults.string(forKey: Keys.sortOrder) ?? "") ?? .alphabetical
         self.groupingMode = GroupingMode(rawValue: defaults.string(forKey: Keys.groupingMode) ?? "") ?? .none
         self.hiddenAppIDs = Set(defaults.stringArray(forKey: Keys.hiddenAppIDs) ?? [])
@@ -196,6 +201,7 @@ final class PreferencesManager {
     private enum Keys {
         static let viewMode = "viewMode"
         static let iconSize = "iconSize"
+        static let listIconSize = "listIconSize"
         static let sortOrder = "sortOrder"
         static let groupingMode = "groupingMode"
         static let groups = "groups"

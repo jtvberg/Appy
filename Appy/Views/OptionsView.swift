@@ -35,6 +35,16 @@ struct OptionsView: View {
                             .font(.title3)
                     }
 
+                    // MARK: List Size
+                    sectionHeader("List Size")
+                    HStack {
+                        Image(systemName: "list.bullet")
+                            .font(.caption)
+                        Slider(value: $prefs.listIconSize, in: 16...48, step: 4)
+                        Image(systemName: "list.bullet")
+                            .font(.title3)
+                    }
+
                     // MARK: Hidden Apps
                     hiddenAppsSection
 

@@ -13,8 +13,8 @@ struct AppIconNameView: View {
     var onAddToNewGroup: ((String) -> Void)? = nil
     var currentGroupID: UUID? = nil
 
-    private var labelFontSize: CGFloat { max(10, min(16, iconSize * 0.18)) }
-    private var nameHeight: CGFloat { max(28, labelFontSize * 3.5) }
+    // Fixed height for name area: 2 lines of caption text ≈ 28pt
+    private let nameHeight: CGFloat = 28
 
     var body: some View {
         Button(action: onLaunch) {
@@ -26,7 +26,7 @@ struct AppIconNameView: View {
                     .frame(width: iconSize, height: iconSize)
 
                 Text(app.name)
-                    .font(.system(size: labelFontSize))
+                    .font(.caption)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .frame(width: iconSize + 16, height: nameHeight, alignment: .top)
@@ -76,6 +76,7 @@ struct AppIconOnlyView: View {
 
 struct AppListRowView: View {
     let app: AppItem
+    let iconSize: CGFloat
     let onLaunch: () -> Void
     let onToggleHidden: () -> Void
     let groups: [AppGroup]
@@ -91,9 +92,10 @@ struct AppListRowView: View {
                     .interpolation(.high)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
+                    .frame(width: iconSize, height: iconSize)
 
                 Text(app.name)
+                    .font(.system(size: max(iconSize * 0.55, 11)))
                     .lineLimit(1)
 
                 Spacer()

@@ -18,6 +18,8 @@ struct ContentView: View {
     @State private var expandedGroupID: UUID? = nil
     @State private var expandedCategory: String?
     @State private var renamingGroupID: UUID? = nil
+    @State private var expandedListGroupIDs: Set<UUID> = []
+    @State private var expandedListCategories: Set<String> = []
 
     // MARK: - Computed
 
@@ -75,6 +77,7 @@ struct ContentView: View {
                     apps: groupApps,
                     viewMode: prefs.viewMode,
                     iconSize: prefs.iconSize,
+                    listIconSize: prefs.listIconSize,
                     groups: prefs.groups,
                     currentGroupID: group.id,
                     onLaunch: launchApp,
@@ -95,6 +98,7 @@ struct ContentView: View {
                     apps: catApps,
                     viewMode: prefs.viewMode,
                     iconSize: prefs.iconSize,
+                    listIconSize: prefs.listIconSize,
                     groups: prefs.groups,
                     onLaunch: launchApp,
                     onToggleHidden: { prefs.toggleHidden($0) },
@@ -255,29 +259,25 @@ struct ContentView: View {
             LazyVStack(spacing: 2) {
                 ForEach(allDisplayGroups) { group in
                     let groupApps = apps.filter { group.appBundleIdentifiers.contains($0.id) }
-                    DisclosureGroup {
-                        ForEach(groupApps) { app in
-                            AppListRowView(
-                                app: app,
-                                onLaunch: { launchApp(app) },
-                                onToggleHidden: { prefs.toggleHidden(app) },
-                                groups: prefs.groups,
-                                onAddToGroup: { gid in prefs.addApp(app.id, toGroup: gid) },
-                                onRemoveFromGroup: { prefs.removeApp(app.id, fromGroup: group.id) },
-                                onAddToNewGroup: { name in prefs.addGroupWithApp(named: name, appID: app.id) },
-                                currentGroupID: group.id
-                            )
-                        }
-                    } label: {
-                        GroupListHeaderView(
-                            name: group.name,
-                            appCount: group.appBundleIdentifiers.count,
-                            groupID: group.id,
-                            onDropApp: { appID in prefs.addApp(appID, toGroup: group.id) },
-                            onRename: { newName in prefs.renameGroup(group.id, to: newName) },
-                            renamingGroupID: $renamingGroupID
-                        )
-                    }
+                    GroupListHeaderView(
+                        name: group.name,
+                        appCount: group.appBundleIdentifiers.count,
+                        iconSize: prefs.listIconSize,
+                        isExpanded: expandedListGroupIDs.contains(group.id),
+                        groupID: group.id,
+                        onToggle: {
+                            withAnimation {
+                                if expandedListGroupIDs.contains(group.id) {
+                                    expandedListGroupIDs.remove(group.id)
+                                } else {
+                                    expandedListGroupIDs.insert(group.id)
+                                }
+                            }
+                        },
+                        onDropApp: { appID in prefs.addApp(appID, toGroup: group.id) },
+                        onRename: { newName in prefs.renameGroup(group.id, to: newName) },
+                        renamingGroupID: $renamingGroupID
+                    )
                     .contextMenu {
                         Button("Rename") {
                             renamingGroupID = group.id
@@ -286,28 +286,38 @@ struct ContentView: View {
                             prefs.removeGroup(group)
                         }
                     }
-                }
 
-                // Ungrouped apps
-                let groupedIDs = Set(prefs.groups.flatMap(\.appBundleIdentifiers))
-                let ungrouped = apps.filter { !groupedIDs.contains($0.id) }
-                if !ungrouped.isEmpty {
-                    DisclosureGroup {
-                        ForEach(ungrouped) { app in
+                    if expandedListGroupIDs.contains(group.id) {
+                        ForEach(groupApps) { app in
                             AppListRowView(
                                 app: app,
+                                iconSize: prefs.listIconSize,
                                 onLaunch: { launchApp(app) },
                                 onToggleHidden: { prefs.toggleHidden(app) },
                                 groups: prefs.groups,
                                 onAddToGroup: { gid in prefs.addApp(app.id, toGroup: gid) },
-                                onAddToNewGroup: { name in prefs.addGroupWithApp(named: name, appID: app.id) }
+                                onRemoveFromGroup: { prefs.removeApp(app.id, fromGroup: group.id) },
+                                onAddToNewGroup: { name in prefs.addGroupWithApp(named: name, appID: app.id) },
+                                currentGroupID: group.id
                             )
+                            .padding(.leading, prefs.listIconSize * 0.5 + 8)
                         }
-                    } label: {
-                        Label("Other", systemImage: "folder")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
                     }
+                }
+
+                // Ungrouped apps — flat, no collapsible
+                let groupedIDs = Set(prefs.groups.flatMap(\.appBundleIdentifiers))
+                let ungrouped = apps.filter { !groupedIDs.contains($0.id) }
+                ForEach(ungrouped) { app in
+                    AppListRowView(
+                        app: app,
+                        iconSize: prefs.listIconSize,
+                        onLaunch: { launchApp(app) },
+                        onToggleHidden: { prefs.toggleHidden(app) },
+                        groups: prefs.groups,
+                        onAddToGroup: { gid in prefs.addApp(app.id, toGroup: gid) },
+                        onAddToNewGroup: { name in prefs.addGroupWithApp(named: name, appID: app.id) }
+                    )
                 }
             }
         } else {
@@ -356,26 +366,54 @@ struct ContentView: View {
             LazyVStack(spacing: 2) {
                 ForEach(sortedKeys, id: \.self) { category in
                     let catApps = grouped[category] ?? []
-                    DisclosureGroup {
+                    let isExpanded = expandedListCategories.contains(category)
+
+                    HStack(spacing: 8) {
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: prefs.listIconSize * 0.45, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: prefs.listIconSize * 0.5)
+
+                        Image(systemName: "tag.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: prefs.listIconSize, height: prefs.listIconSize)
+                            .foregroundStyle(.secondary)
+
+                        Text(category)
+                            .font(.system(size: max(prefs.listIconSize * 0.55, 11), weight: .semibold))
+
+                        Spacer()
+
+                        Text("\(catApps.count)")
+                            .font(.system(size: max(prefs.listIconSize * 0.45, 9)))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 4)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation {
+                            if isExpanded {
+                                expandedListCategories.remove(category)
+                            } else {
+                                expandedListCategories.insert(category)
+                            }
+                        }
+                    }
+
+                    if isExpanded {
                         ForEach(catApps) { app in
                             AppListRowView(
                                 app: app,
+                                iconSize: prefs.listIconSize,
                                 onLaunch: { launchApp(app) },
                                 onToggleHidden: { prefs.toggleHidden(app) },
                                 groups: prefs.groups,
                                 onAddToGroup: { gid in prefs.addApp(app.id, toGroup: gid) },
                                 onAddToNewGroup: { name in prefs.addGroupWithApp(named: name, appID: app.id) }
                             )
-                        }
-                    } label: {
-                        HStack {
-                            Text(category)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Spacer()
-                            Text("\(catApps.count)")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
+                            .padding(.leading, prefs.listIconSize * 0.5 + 8)
                         }
                     }
                 }
@@ -437,6 +475,7 @@ struct ContentView: View {
                 ForEach(apps) { app in
                     AppListRowView(
                         app: app,
+                        iconSize: prefs.listIconSize,
                         onLaunch: { launchApp(app) },
                         onToggleHidden: { prefs.toggleHidden(app) },
                         groups: prefs.groups,
@@ -474,6 +513,7 @@ struct ContentView: View {
         case .list:
             AppListRowView(
                 app: app,
+                iconSize: prefs.listIconSize,
                 onLaunch: { launchApp(app) },
                 onToggleHidden: { prefs.toggleHidden(app) },
                 groups: prefs.groups,

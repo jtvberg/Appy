@@ -72,8 +72,7 @@ struct GroupHeaderView: View {
 
     private var isEditing: Bool { renamingGroupID == groupID }
 
-    private var labelFontSize: CGFloat { max(9, min(14, iconSize * 0.16)) }
-    private var nameHeight: CGFloat { max(28, labelFontSize * 3.5) }
+    private let nameHeight: CGFloat = 28
 
     var body: some View {
         VStack(spacing: 4) {
@@ -91,7 +90,7 @@ struct GroupHeaderView: View {
                 SelectAllTextField(
                     text: $editName,
                     onCommit: commitRename,
-                    fontSize: labelFontSize,
+                    fontSize: NSFont.systemFontSize(for: .mini),
                     alignment: .center
                 )
                 .frame(width: iconSize + 16, height: nameHeight)
@@ -100,7 +99,8 @@ struct GroupHeaderView: View {
             } else {
                 Button(action: action) {
                     Text(name)
-                        .font(.system(size: labelFontSize, weight: .medium))
+                        .font(.caption2)
+                        .fontWeight(.medium)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                         .frame(width: iconSize + 16, height: nameHeight, alignment: .top)
@@ -140,7 +140,10 @@ struct GroupHeaderView: View {
 struct GroupListHeaderView: View {
     let name: String
     let appCount: Int
+    let iconSize: CGFloat
+    let isExpanded: Bool
     let groupID: UUID
+    let onToggle: () -> Void
     let onDropApp: (String) -> Void
     var onRename: ((String) -> Void)? = nil
     @Binding var renamingGroupID: UUID?
@@ -151,33 +154,43 @@ struct GroupListHeaderView: View {
     private var isEditing: Bool { renamingGroupID == groupID }
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
+            Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                .font(.system(size: iconSize * 0.45, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: iconSize * 0.5)
+
             Image(systemName: "folder.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: iconSize, height: iconSize)
                 .foregroundStyle(isDropTargeted ? .blue : .secondary)
-                .font(.caption)
 
             if isEditing {
                 SelectAllTextField(
                     text: $editName,
                     onCommit: commitRename,
-                    fontSize: NSFont.systemFontSize(for: .regular),
+                    fontSize: max(iconSize * 0.55, 11),
                     alignment: .left
                 )
                 .onExitCommand { renamingGroupID = nil }
                 .onAppear { editName = name }
             } else {
                 Text(name)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .font(.system(size: max(iconSize * 0.55, 11), weight: .semibold))
             }
 
             Spacer()
             Text("\(appCount)")
-                .font(.caption2)
+                .font(.system(size: max(iconSize * 0.45, 9)))
                 .foregroundStyle(.tertiary)
         }
         .padding(.vertical, 2)
         .padding(.horizontal, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if !isEditing { onToggle() }
+        }
         .background(
             RoundedRectangle(cornerRadius: 4)
                 .fill(isDropTargeted ? Color.accentColor.opacity(0.15) : Color.clear)
@@ -208,6 +221,7 @@ struct GroupExpandedView: View {
     let apps: [AppItem]
     let viewMode: ViewMode
     let iconSize: CGFloat
+    let listIconSize: CGFloat
     let groups: [AppGroup]
     var currentGroupID: UUID? = nil
     let onLaunch: (AppItem) -> Void
@@ -287,6 +301,7 @@ struct GroupExpandedView: View {
                 ForEach(apps) { app in
                     AppListRowView(
                         app: app,
+                        iconSize: listIconSize,
                         onLaunch: { onLaunch(app) },
                         onToggleHidden: { onToggleHidden(app) },
                         groups: groups,

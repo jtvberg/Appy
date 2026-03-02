@@ -15,7 +15,7 @@ struct AppItem: Identifiable, Hashable {
 
     /// Human-friendly category name derived from LSApplicationCategoryType.
     var categoryDisplayName: String {
-        guard let category else { return "Uncategorized" }
+        guard let category, !category.isEmpty else { return "Other" }
         return Self.categoryMap[category] ?? Self.humanize(category)
     }
 
