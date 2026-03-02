@@ -5,12 +5,16 @@ import SwiftUI
 struct SelectAllTextField: NSViewRepresentable {
     @Binding var text: String
     var onCommit: () -> Void
+    var fontSize: CGFloat = NSFont.systemFontSize(for: .mini)
+    var alignment: NSTextAlignment = .center
 
     func makeNSView(context: Context) -> NSTextField {
         let tf = NSTextField()
         tf.isBordered = false
         tf.backgroundColor = .clear
         tf.focusRingType = .none
+        tf.alignment = alignment
+        tf.font = NSFont.systemFont(ofSize: fontSize)
         tf.delegate = context.coordinator
         return tf
     }
@@ -68,36 +72,43 @@ struct GroupHeaderView: View {
 
     private var isEditing: Bool { renamingGroupID == groupID }
 
+    private let nameHeight: CGFloat = 28
+
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 4) {
             Button(action: action) {
                 Image(systemName: "folder.fill")
-                    .font(.system(size: min(iconSize * 0.35, 28)))
+                    .resizable()
+                    .scaledToFit()
+                    .padding(iconSize * 0.1)
+                    .frame(width: iconSize, height: iconSize)
                     .foregroundStyle(isDropTargeted ? .blue : .secondary)
             }
             .buttonStyle(.plain)
 
             if isEditing {
-                SelectAllTextField(text: $editName, onCommit: commitRename)
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.center)
-                    .frame(width: iconSize)
-                    .onExitCommand { renamingGroupID = nil }
-                    .onAppear { editName = name }
+                SelectAllTextField(
+                    text: $editName,
+                    onCommit: commitRename,
+                    fontSize: NSFont.systemFontSize(for: .mini),
+                    alignment: .center
+                )
+                .frame(width: iconSize + 16, height: nameHeight)
+                .onExitCommand { renamingGroupID = nil }
+                .onAppear { editName = name }
             } else {
                 Button(action: action) {
                     Text(name)
                         .font(.caption2)
                         .fontWeight(.medium)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .frame(width: iconSize + 16, height: nameHeight, alignment: .top)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .frame(width: iconSize, height: iconSize * 0.7)
-        .padding(3)
+        .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(isDropTargeted ? Color.accentColor.opacity(0.15) : Color.clear)
@@ -108,9 +119,7 @@ struct GroupHeaderView: View {
         )
         .contentShape(Rectangle())
         .dropDestination(for: String.self) { items, _ in
-            for appID in items {
-                onDropApp(appID)
-            }
+            for appID in items { onDropApp(appID) }
             return !items.isEmpty
         } isTargeted: { targeted in
             isDropTargeted = targeted
@@ -148,11 +157,14 @@ struct GroupListHeaderView: View {
                 .font(.caption)
 
             if isEditing {
-                SelectAllTextField(text: $editName, onCommit: commitRename)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .onExitCommand { renamingGroupID = nil }
-                    .onAppear { editName = name }
+                SelectAllTextField(
+                    text: $editName,
+                    onCommit: commitRename,
+                    fontSize: NSFont.systemFontSize(for: .regular),
+                    alignment: .left
+                )
+                .onExitCommand { renamingGroupID = nil }
+                .onAppear { editName = name }
             } else {
                 Text(name)
                     .font(.subheadline)

@@ -154,7 +154,7 @@ struct ContentView: View {
                     prefs.sortOrder = prefs.sortOrder == .alphabetical ? .newest : .alphabetical
                 } label: {
                     Image(systemName: prefs.sortOrder.systemImage)
-                        .font(.caption)
+                        .imageScale(.large)
                 }
                 .buttonStyle(.plain)
                 .help("Sort: \(prefs.sortOrder.rawValue)")
@@ -192,7 +192,7 @@ struct ContentView: View {
                     showOptions = true
                 } label: {
                     Image(systemName: "gearshape")
-                        .font(.caption)
+                        .imageScale(.large)
                 }
                 .buttonStyle(.plain)
                 .help("Options")

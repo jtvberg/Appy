@@ -102,7 +102,8 @@ final class PreferencesManager {
         self.groupingMode = GroupingMode(rawValue: defaults.string(forKey: Keys.groupingMode) ?? "") ?? .none
         self.hiddenAppIDs = Set(defaults.stringArray(forKey: Keys.hiddenAppIDs) ?? [])
         self.showHidden = defaults.bool(forKey: Keys.showHidden)
-        self.popoverWidth = CGFloat(defaults.double(forKey: Keys.popoverWidth) != 0 ? defaults.double(forKey: Keys.popoverWidth) : 420)
+        let storedWidth = CGFloat(defaults.double(forKey: Keys.popoverWidth))
+        self.popoverWidth = (storedWidth >= 500) ? storedWidth : 560
         self.popoverHeight = CGFloat(defaults.double(forKey: Keys.popoverHeight) != 0 ? defaults.double(forKey: Keys.popoverHeight) : 520)
 
         // Load groups
