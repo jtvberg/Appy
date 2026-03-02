@@ -91,6 +91,9 @@ final class PreferencesManager {
         didSet { defaults.set(Double(popoverHeight), forKey: Keys.popoverHeight) }
     }
 
+    // Transient — not persisted; used to signal ContentView to reset sheet state on close
+    var popoverVisible: Bool = false
+
     // MARK: Init
 
     private let defaults = UserDefaults.standard

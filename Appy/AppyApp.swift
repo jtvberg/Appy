@@ -66,11 +66,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             popover.contentSize = NSSize(width: preferences.popoverWidth, height: preferences.popoverHeight)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
+            preferences.popoverVisible = true
             installMonitors()
         }
     }
 
     private func closePopover() {
+        preferences.popoverVisible = false
         popover.performClose(nil)
         removeMonitors()
     }

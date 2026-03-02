@@ -114,6 +114,13 @@ struct ContentView: View {
             expandedGroupID = nil
             expandedCategory = nil
         }
+        .onChange(of: prefs.popoverVisible) { _, visible in
+            if !visible {
+                // Dismiss any open sheets so their invisible overlay doesn't
+                // block clicks when the popover is next opened.
+                showOptions = false
+            }
+        }
         .sheet(isPresented: $showOptions) {
             OptionsView()
                 .environment(prefs)
