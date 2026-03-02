@@ -156,8 +156,11 @@ struct ContentView: View {
                     Image(systemName: prefs.sortOrder.systemImage)
                         .imageScale(.large)
                 }
+                .frame(width: 32)
                 .buttonStyle(.plain)
                 .help("Sort: \(prefs.sortOrder.rawValue)")
+                
+                Spacer()
 
                 // View mode picker
                 Picker("", selection: Binding(

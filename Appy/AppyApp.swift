@@ -35,7 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Create status bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: "Appy")
+            button.image = NSImage(systemSymbolName: "square.grid.3x3.fill", accessibilityDescription: "Appy")
             button.action = #selector(togglePopover)
             button.target = self
         }
