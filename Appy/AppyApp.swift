@@ -38,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.image = NSImage(systemSymbolName: "square.grid.3x3.fill", accessibilityDescription: "Appy")
             button.action = #selector(togglePopover)
             button.target = self
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
 
         // Build SwiftUI content with environment
@@ -57,6 +58,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func togglePopover() {
+        // Right-click: show context menu with Quit
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            let menu = NSMenu()
+            menu.addItem(NSMenuItem(title: "Quit Appy", action: #selector(quitApp), keyEquivalent: "q"))
+            statusItem.menu = menu
+            statusItem.button?.performClick(nil)
+            statusItem.menu = nil // restore left-click behavior
+            return
+        }
+
         guard let button = statusItem.button else { return }
         if popover.isShown {
             closePopover()
@@ -75,6 +86,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         preferences.popoverVisible = false
         popover.performClose(nil)
         removeMonitors()
+    }
+
+    @objc private func quitApp() {
+        NSApp.terminate(nil)
     }
 
     private func installMonitors() {

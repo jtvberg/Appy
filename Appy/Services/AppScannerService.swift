@@ -70,6 +70,9 @@ final class AppScannerService {
         let bundleID = info?["CFBundleIdentifier"] as? String
         let dedupeKey = bundleID ?? url.path
 
+        // Exclude self from results
+        if bundleID == Bundle.main.bundleIdentifier { return nil }
+
         guard !seen.contains(dedupeKey) else { return nil }
         seen.insert(dedupeKey)
 

@@ -198,6 +198,7 @@ struct ContentView: View {
                 .pickerStyle(.segmented)
                 .frame(width: 100)
                 .help("Grouping: \(prefs.groupingMode.rawValue)")
+                .disabled(!searchText.isEmpty)
 
                 Spacer()
 
@@ -221,13 +222,17 @@ struct ContentView: View {
     @ViewBuilder
     private var mainContent: some View {
         ScrollView {
-            switch prefs.groupingMode {
-            case .none:
+            if !searchText.isEmpty {
                 ungroupedContent
-            case .manual:
-                manualGroupedContent
-            case .category:
-                categoryGroupedContent
+            } else {
+                switch prefs.groupingMode {
+                case .none:
+                    ungroupedContent
+                case .manual:
+                    manualGroupedContent
+                case .category:
+                    categoryGroupedContent
+                }
             }
         }
         .padding(8)
