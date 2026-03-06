@@ -24,7 +24,7 @@ struct OptionsView: View {
             Divider()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
                     // MARK: Launch at Login
                     HStack {
                         Text("Launch at Login")
