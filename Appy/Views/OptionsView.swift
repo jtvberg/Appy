@@ -68,7 +68,7 @@ struct OptionsView: View {
                 .padding(16)
             }
         }
-        .frame(width: 320, height: 360)
+        .frame(width: 320, height: prefs.popoverHeight * 0.7)
     }
 
     // MARK: Sections

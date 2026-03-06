@@ -135,7 +135,7 @@ final class PreferencesManager {
         self.hiddenAppIDs = Set(defaults.stringArray(forKey: Keys.hiddenAppIDs) ?? [])
         self.showHidden = defaults.bool(forKey: Keys.showHidden)
         let storedWidth = CGFloat(defaults.double(forKey: Keys.popoverWidth))
-        self.popoverWidth = (storedWidth >= 500) ? storedWidth : 560
+        self.popoverWidth = (storedWidth >= 336) ? storedWidth : 560
         self.popoverHeight = CGFloat(defaults.double(forKey: Keys.popoverHeight) != 0 ? defaults.double(forKey: Keys.popoverHeight) : 520)
         self.showControls = defaults.object(forKey: Keys.showControls) == nil ? true : defaults.bool(forKey: Keys.showControls)
         self.launchAtLogin = SMAppService.mainApp.status == .enabled

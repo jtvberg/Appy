@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(AppScannerService.self) private var scanner
     @Environment(PreferencesManager.self) private var prefs
     @Environment(\.dismissPopover) private var dismissPopover
+    @Environment(\.resizePopover) private var resizePopover
 
     @State private var searchText = ""
     @State private var showOptions = false
@@ -112,7 +113,14 @@ struct ContentView: View {
                 mainContent
             }
         }
-        .frame(minWidth: 300, minHeight: 300)
+        .frame(minWidth: 336, minHeight: 300)
+        .overlay(alignment: .bottomTrailing) {
+            PopoverResizeHandle(
+                currentWidth: prefs.popoverWidth,
+                currentHeight: prefs.popoverHeight,
+                onResize: resizePopover
+            )
+        }
         .onChange(of: prefs.groupingMode) { _, _ in
             expandedGroupID = nil
             expandedCategory = nil
@@ -534,5 +542,75 @@ struct ContentView: View {
         let config = NSWorkspace.OpenConfiguration()
         NSWorkspace.shared.openApplication(at: app.url, configuration: config) { _, _ in }
         dismissPopover()
+    }
+}
+
+// MARK: - Popover Resize Handle
+
+// An invisible drag handle at the bottom-right corner of the popover
+private struct PopoverResizeHandle: View {
+    let currentWidth: CGFloat
+    let currentHeight: CGFloat
+    let onResize: (CGSize) -> Void
+
+    @State private var isHovering = false
+    @State private var dragStartSize: CGSize?
+
+    private let minWidth: CGFloat = 336
+    private let minHeight: CGFloat = 300
+    private let maxWidth: CGFloat = 900
+    private let maxHeight: CGFloat = 900
+
+    private static let resizeCursor: NSCursor = {
+        let size: CGFloat = 16
+        let image = NSImage(size: NSSize(width: size, height: size), flipped: true) { rect in
+            NSColor.controlTextColor.setStroke()
+            let path = NSBezierPath()
+            path.move(to: NSPoint(x: 1, y: 1))
+            path.line(to: NSPoint(x: 15, y: 15))
+            path.move(to: NSPoint(x: 1, y: 1))
+            path.line(to: NSPoint(x: 7, y: 1))
+            path.move(to: NSPoint(x: 1, y: 1))
+            path.line(to: NSPoint(x: 1, y: 7))
+            path.move(to: NSPoint(x: 15, y: 15))
+            path.line(to: NSPoint(x: 9, y: 15))
+            path.move(to: NSPoint(x: 15, y: 15))
+            path.line(to: NSPoint(x: 15, y: 9))
+            path.lineWidth = 1.5
+            path.lineCapStyle = .round
+            path.stroke()
+            return true
+        }
+        return NSCursor(image: image, hotSpot: NSPoint(x: 8, y: 8))
+    }()
+
+    var body: some View {
+        Color.clear
+            .frame(width: 16, height: 16)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                isHovering = hovering
+                if hovering {
+                    Self.resizeCursor.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            .gesture(
+                DragGesture(coordinateSpace: .global)
+                    .onChanged { value in
+                        if dragStartSize == nil {
+                            dragStartSize = CGSize(width: currentWidth, height: currentHeight)
+                        }
+                        guard let start = dragStartSize else { return }
+                        // Width and height track mouse movement 1:1
+                        let newWidth = max(minWidth, min(maxWidth, start.width + value.translation.width))
+                        let newHeight = max(minHeight, min(maxHeight, start.height + value.translation.height))
+                        onResize(CGSize(width: newWidth, height: newHeight))
+                    }
+                    .onEnded { _ in
+                        dragStartSize = nil
+                    }
+            )
     }
 }

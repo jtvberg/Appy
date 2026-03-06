@@ -1,16 +1,24 @@
 import SwiftUI
 import AppKit
 
-// MARK: Environment key for popover dismiss
+// MARK: Environment keys
 
 struct PopoverDismissKey: EnvironmentKey {
     nonisolated static let defaultValue: () -> Void = {}
+}
+
+struct PopoverResizeKey: EnvironmentKey {
+    nonisolated static let defaultValue: (CGSize) -> Void = { _ in }
 }
 
 extension EnvironmentValues {
     var dismissPopover: () -> Void {
         get { self[PopoverDismissKey.self] }
         set { self[PopoverDismissKey.self] = newValue }
+    }
+    var resizePopover: (CGSize) -> Void {
+        get { self[PopoverResizeKey.self] }
+        set { self[PopoverResizeKey.self] = newValue }
     }
 }
 
@@ -40,6 +48,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(preferences)
             .environment(\.dismissPopover, { [weak self] in
                 self?.closePopover()
+            })
+            .environment(\.resizePopover, { [weak self] newSize in
+                guard let self else { return }
+                self.popover.contentSize = newSize
+                self.preferences.popoverWidth = newSize.width
+                self.preferences.popoverHeight = newSize.height
             })
 
         // Configure popover
