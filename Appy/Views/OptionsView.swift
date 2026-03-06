@@ -25,8 +25,22 @@ struct OptionsView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    // MARK: Launch at Login
+                    HStack {
+                        Text("Launch at Login")
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { prefs.launchAtLogin },
+                            set: { prefs.launchAtLogin = $0 }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                    }
+                    Divider()
+
                     // MARK: Icon Size
                     sectionHeader("Icon Size")
+                    Text("Grid Size")
                     HStack {
                         Image(systemName: "square.grid.4x3.fill")
                             .font(.caption)
@@ -36,7 +50,7 @@ struct OptionsView: View {
                     }
 
                     // MARK: List Size
-                    sectionHeader("List Size")
+                    Text("List Size")
                     HStack {
                         Image(systemName: "list.bullet")
                             .font(.caption)
@@ -46,6 +60,7 @@ struct OptionsView: View {
                     }
 
                     // MARK: Hidden Apps
+                    Divider()
                     hiddenAppsSection
 
                     Spacer(minLength: 8)
@@ -56,7 +71,7 @@ struct OptionsView: View {
         .frame(width: 320, height: 360)
     }
 
-    // MARK: - Sections
+    // MARK: Sections
 
     @ViewBuilder
     private var hiddenAppsSection: some View {
@@ -65,8 +80,13 @@ struct OptionsView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeader("Hidden Apps")
 
-            Toggle("Show Hidden Apps", isOn: $prefs.showHidden)
+            HStack {
+                Text("Show Hidden Apps")
+                Spacer()
+                Toggle("", isOn: $prefs.showHidden)
                 .toggleStyle(.switch)
+                .controlSize(.small)
+            }
 
             if !prefs.hiddenAppIDs.isEmpty {
                 let hiddenApps = scanner.apps.filter { prefs.hiddenAppIDs.contains($0.id) }
@@ -94,7 +114,7 @@ struct OptionsView: View {
         }
     }
 
-    // MARK: - Helpers
+    // MARK: Helpers
 
     private func sectionHeader(_ title: String) -> some View {
         Text(title)

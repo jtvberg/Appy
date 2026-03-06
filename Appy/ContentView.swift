@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Appy
-//
-//  Created by Joel Vandenberg on 3/1/26.
-//
-
 import SwiftUI
 import AppKit
 
@@ -21,10 +14,16 @@ struct ContentView: View {
     @State private var expandedListGroupIDs: Set<UUID> = []
     @State private var expandedListCategories: Set<String> = []
 
-    // MARK: - Computed
+    // MARK: Computed
 
     private var processedApps: [AppItem] {
-        var apps = scanner.apps
+        // When searching, merge filesystem + spotlight results
+        var apps: [AppItem]
+        if !searchText.isEmpty {
+            apps = scanner.apps + scanner.spotlightApps
+        } else {
+            apps = scanner.apps
+        }
 
         // Apply hidden filter
         if !prefs.showHidden {
@@ -53,7 +52,7 @@ struct ContentView: View {
         return apps
     }
 
-    // MARK: - Body
+    // MARK: Body
 
     var body: some View {
         VStack(spacing: 0) {
@@ -120,8 +119,6 @@ struct ContentView: View {
         }
         .onChange(of: prefs.popoverVisible) { _, visible in
             if !visible {
-                // Dismiss any open sheets so their invisible overlay doesn't
-                // block clicks when the popover is next opened.
                 showOptions = false
             }
         }
@@ -132,7 +129,7 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Top Bar
+    // MARK: Top Bar
 
     private var topBar: some View {
         VStack(spacing: 6) {
@@ -153,71 +150,84 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        prefs.showControls.toggle()
+                    }
+                } label: {
+                    Image(systemName: prefs.showControls ? "chevron.up" : "chevron.down")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(prefs.showControls ? "Hide controls" : "Show controls")
             }
             .padding(8)
             .background(.quaternary.opacity(0.5))
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             // Controls row
-            HStack(spacing: 8) {
-                // Sort toggle
-                Button {
-                    prefs.sortOrder = prefs.sortOrder == .alphabetical ? .newest : .alphabetical
-                } label: {
-                    Image(systemName: prefs.sortOrder.systemImage)
-                        .imageScale(.large)
-                }
-                .frame(width: 32)
-                .buttonStyle(.plain)
-                .help("Sort: \(prefs.sortOrder.rawValue)")
-                
-                Spacer()
-
-                // View mode picker
-                Picker("", selection: Binding(
-                    get: { prefs.viewMode },
-                    set: { prefs.viewMode = $0 }
-                )) {
-                    ForEach(ViewMode.allCases) { mode in
-                        Image(systemName: mode.systemImage)
-                            .tag(mode)
+            if prefs.showControls {
+                HStack(spacing: 8) {
+                    // Sort toggle
+                    Button {
+                        prefs.sortOrder = prefs.sortOrder == .alphabetical ? .newest : .alphabetical
+                    } label: {
+                        Image(systemName: prefs.sortOrder.systemImage)
+                            .imageScale(.large)
                     }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 100)
+                    .frame(width: 32)
+                    .buttonStyle(.plain)
+                    .help("Sort: \(prefs.sortOrder.rawValue)")
+                    
+                    Spacer()
 
-                // Grouping mode picker
-                Picker("", selection: Binding(
-                    get: { prefs.groupingMode },
-                    set: { prefs.groupingMode = $0 }
-                )) {
-                    Image(systemName: "app").tag(GroupingMode.none)
-                    Image(systemName: "folder").tag(GroupingMode.manual)
-                    Image(systemName: "tag").tag(GroupingMode.category)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 100)
-                .help("Grouping: \(prefs.groupingMode.rawValue)")
-                .disabled(!searchText.isEmpty)
+                    // View mode picker
+                    Picker("", selection: Binding(
+                        get: { prefs.viewMode },
+                        set: { prefs.viewMode = $0 }
+                    )) {
+                        ForEach(ViewMode.allCases) { mode in
+                            Image(systemName: mode.systemImage)
+                                .tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 100)
 
-                Spacer()
+                    // Grouping mode picker
+                    Picker("", selection: Binding(
+                        get: { prefs.groupingMode },
+                        set: { prefs.groupingMode = $0 }
+                    )) {
+                        Image(systemName: "app").tag(GroupingMode.none)
+                        Image(systemName: "folder").tag(GroupingMode.manual)
+                        Image(systemName: "tag").tag(GroupingMode.category)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 100)
+                    .help("Grouping: \(prefs.groupingMode.rawValue)")
+                    .disabled(!searchText.isEmpty)
 
-                // Options gear
-                Button {
-                    showOptions = true
-                } label: {
-                    Image(systemName: "gearshape")
-                        .imageScale(.large)
+                    Spacer()
+
+                    // Options gear
+                    Button {
+                        showOptions = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .imageScale(.large)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Options")
                 }
-                .buttonStyle(.plain)
-                .help("Options")
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
     }
 
-    // MARK: - Main Content
+    // MARK: Main Content
 
     @ViewBuilder
     private var mainContent: some View {
@@ -251,18 +261,9 @@ struct ContentView: View {
     private var manualGroupedContent: some View {
         let apps = processedApps
 
-        let activeGroups = prefs.groups.filter { group in
-            apps.contains { group.appBundleIdentifiers.contains($0.id) }
-        }
-        // Also show empty groups so users can drag into them
-        let emptyGroups = prefs.groups.filter { group in
-            !activeGroups.contains(where: { $0.id == group.id })
-        }
-        let allDisplayGroups = activeGroups + emptyGroups
-
         if prefs.viewMode == .list {
             LazyVStack(spacing: 2) {
-                ForEach(allDisplayGroups) { group in
+                ForEach(prefs.groups) { group in
                     let groupApps = apps.filter { group.appBundleIdentifiers.contains($0.id) }
                     GroupListHeaderView(
                         name: group.name,
@@ -328,7 +329,7 @@ struct ContentView: View {
         } else {
             let gridItemSize = prefs.viewMode == .iconOnly ? prefs.iconSize + 12 : prefs.iconSize + 24
             LazyVGrid(columns: [GridItem(.adaptive(minimum: gridItemSize), spacing: 4)], spacing: 8) {
-                ForEach(allDisplayGroups) { group in
+                ForEach(prefs.groups) { group in
                     GroupHeaderView(
                         name: group.name,
                         appCount: group.appBundleIdentifiers.count,
@@ -432,10 +433,10 @@ struct ContentView: View {
                         name: category,
                         appCount: catApps.count,
                         iconSize: prefs.iconSize,
-                        groupID: UUID(), // category groups don't have a real UUID
+                        groupID: UUID(),
                         systemImage: "tag.square.fill",
                         action: { expandedCategory = category },
-                        onDropApp: { _ in }, // no drop for categories
+                        onDropApp: { _ in },
                         renamingGroupID: .constant(nil)
                     )
                 }
@@ -443,7 +444,7 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Helpers
+    // MARK: Helpers
 
     @ViewBuilder
     private func appGrid(_ apps: [AppItem]) -> some View {

@@ -1,6 +1,6 @@
 import Foundation
 
-/// A user-defined group of applications.
+// A user-defined group of applications
 struct AppGroup: Identifiable, Codable, Hashable {
     var id: UUID
     var name: String

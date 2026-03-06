@@ -1,14 +1,7 @@
-//
-//  AppyApp.swift
-//  Appy
-//
-//  Created by Joel Vandenberg on 3/1/26.
-//
-
 import SwiftUI
 import AppKit
 
-// MARK: - Environment key for popover dismiss
+// MARK: Environment key for popover dismiss
 
 struct PopoverDismissKey: EnvironmentKey {
     nonisolated static let defaultValue: () -> Void = {}
@@ -21,7 +14,7 @@ extension EnvironmentValues {
     }
 }
 
-// MARK: - AppDelegate
+// MARK: AppDelegate
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -64,7 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(NSMenuItem(title: "Quit Appy", action: #selector(quitApp), keyEquivalent: "q"))
             statusItem.menu = menu
             statusItem.button?.performClick(nil)
-            statusItem.menu = nil // restore left-click behavior
+            statusItem.menu = nil
             return
         }
 
@@ -101,7 +94,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Local monitor: clicks on the status bar button while popover is open
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             guard let self, self.popover.isShown else { return event }
-            // If the click is on the status item button, close and swallow
             if let button = self.statusItem.button, event.window == button.window {
                 self.closePopover()
                 return nil
@@ -122,7 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-// MARK: - App entry point
+// MARK: App entry point
 
 @main
 struct AppyApp: App {

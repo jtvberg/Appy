@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 
-/// Represents a single application found on disk.
+// Represents a single application found on disk
 struct AppItem: Identifiable, Hashable {
     let id: String // bundleIdentifier or path as fallback
     let name: String
@@ -10,16 +10,15 @@ struct AppItem: Identifiable, Hashable {
     let category: String?
     let icon: NSImage
     let dateAdded: Date
-
     var isHidden: Bool = false
 
-    /// Human-friendly category name derived from LSApplicationCategoryType.
+    // Human-friendly category name derived from LSApplicationCategoryType
     var categoryDisplayName: String {
         guard let category, !category.isEmpty else { return "Other" }
         return Self.categoryMap[category] ?? Self.humanize(category)
     }
 
-    // MARK: - Hashable / Equatable
+    // MARK: Hashable / Equatable
 
     static func == (lhs: AppItem, rhs: AppItem) -> Bool {
         lhs.id == rhs.id
@@ -29,7 +28,7 @@ struct AppItem: Identifiable, Hashable {
         hasher.combine(id)
     }
 
-    // MARK: - Category mapping
+    // MARK: Category mapping
 
     private static let categoryMap: [String: String] = [
         "public.app-category.business": "Business",
@@ -74,7 +73,7 @@ struct AppItem: Identifiable, Hashable {
         "public.app-category.weather": "Weather",
     ]
 
-    /// Fallback: convert reverse-DNS style to human-readable.
+    // Fallback: convert reverse-DNS style to human-readable
     private static func humanize(_ raw: String) -> String {
         let last = raw.components(separatedBy: ".").last ?? raw
         return last

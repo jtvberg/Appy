@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Auto-selecting TextField
+// MARK: Auto-selecting TextField
 
 struct SelectAllTextField: NSViewRepresentable {
     @Binding var text: String
@@ -55,7 +55,7 @@ struct SelectAllTextField: NSViewRepresentable {
     }
 }
 
-// MARK: - Group Header (grid mode) — compact, supports drop + inline rename
+// MARK: Group Header (grid mode) — compact, supports drop + inline rename
 
 struct GroupHeaderView: View {
     let name: String
@@ -67,12 +67,9 @@ struct GroupHeaderView: View {
     let onDropApp: (String) -> Void
     var onRename: ((String) -> Void)? = nil
     @Binding var renamingGroupID: UUID?
-
     @State private var isDropTargeted = false
     @State private var editName = ""
-
     private var isEditing: Bool { renamingGroupID == groupID }
-
     private let nameHeight: CGFloat = 28
 
     var body: some View {
@@ -136,7 +133,7 @@ struct GroupHeaderView: View {
     }
 }
 
-// MARK: - Group List Row Header — compact, supports drop + inline rename
+// MARK: Group List Row Header — compact, supports drop + inline rename
 
 struct GroupListHeaderView: View {
     let name: String
@@ -148,10 +145,8 @@ struct GroupListHeaderView: View {
     let onDropApp: (String) -> Void
     var onRename: ((String) -> Void)? = nil
     @Binding var renamingGroupID: UUID?
-
     @State private var isDropTargeted = false
     @State private var editName = ""
-
     private var isEditing: Bool { renamingGroupID == groupID }
 
     var body: some View {
@@ -215,7 +210,7 @@ struct GroupListHeaderView: View {
     }
 }
 
-// MARK: - Group Expanded View (replaces main content)
+// MARK: Group Expanded View (replaces main content)
 
 struct GroupExpandedView: View {
     let groupName: String

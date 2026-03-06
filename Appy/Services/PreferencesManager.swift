@@ -1,8 +1,9 @@
 import Foundation
 import SwiftUI
 import Observation
+import ServiceManagement
 
-// MARK: - Enums
+// MARK: Enums
 
 enum ViewMode: String, CaseIterable, Identifiable {
     case iconWithName = "Icons & Names"
@@ -42,7 +43,7 @@ enum GroupingMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-// MARK: - PreferencesManager
+// MARK: PreferencesManager
 
 @Observable
 final class PreferencesManager {
@@ -98,6 +99,29 @@ final class PreferencesManager {
     // Transient — not persisted; used to signal ContentView to reset sheet state on close
     var popoverVisible: Bool = false
 
+    // MARK: UI
+
+    var showControls: Bool {
+        didSet { defaults.set(showControls, forKey: Keys.showControls) }
+    }
+
+    // MARK: Login
+
+    var launchAtLogin: Bool {
+        didSet {
+            do {
+                if launchAtLogin {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                // Revert on failure
+                launchAtLogin = SMAppService.mainApp.status == .enabled
+            }
+        }
+    }
+
     // MARK: Init
 
     private let defaults = UserDefaults.standard
@@ -113,6 +137,8 @@ final class PreferencesManager {
         let storedWidth = CGFloat(defaults.double(forKey: Keys.popoverWidth))
         self.popoverWidth = (storedWidth >= 500) ? storedWidth : 560
         self.popoverHeight = CGFloat(defaults.double(forKey: Keys.popoverHeight) != 0 ? defaults.double(forKey: Keys.popoverHeight) : 520)
+        self.showControls = defaults.object(forKey: Keys.showControls) == nil ? true : defaults.bool(forKey: Keys.showControls)
+        self.launchAtLogin = SMAppService.mainApp.status == .enabled
 
         // Load groups
         if let data = defaults.data(forKey: Keys.groups),
@@ -123,7 +149,7 @@ final class PreferencesManager {
         }
     }
 
-    // MARK: - Helpers
+    // MARK: Helpers
 
     func isHidden(_ app: AppItem) -> Bool {
         hiddenAppIDs.contains(app.id)
@@ -141,7 +167,7 @@ final class PreferencesManager {
         groups.append(AppGroup(name: name))
     }
 
-    /// Create a new group, add the given app to it, and return the group.
+    // Create a new group, add the given app to it, and return the group
     @discardableResult
     func addGroupWithApp(named name: String, appID: String) -> AppGroup {
         var baseName = name
@@ -190,7 +216,7 @@ final class PreferencesManager {
         }
     }
 
-    // MARK: - Private
+    // MARK: Private
 
     private func saveGroups() {
         if let data = try? JSONEncoder().encode(groups) {
@@ -209,5 +235,6 @@ final class PreferencesManager {
         static let showHidden = "showHidden"
         static let popoverWidth = "popoverWidth"
         static let popoverHeight = "popoverHeight"
+        static let showControls = "showControls"
     }
 }

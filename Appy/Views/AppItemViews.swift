@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Icon + Name Grid Cell
+// MARK: Icon + Name Grid Cell
 
 struct AppIconNameView: View {
     let app: AppItem
@@ -12,8 +12,6 @@ struct AppIconNameView: View {
     var onRemoveFromGroup: (() -> Void)? = nil
     var onAddToNewGroup: ((String) -> Void)? = nil
     var currentGroupID: UUID? = nil
-
-    // Fixed height for name area: 2 lines of caption text ≈ 28pt
     private let nameHeight: CGFloat = 28
 
     var body: some View {
@@ -41,7 +39,7 @@ struct AppIconNameView: View {
     }
 }
 
-// MARK: - Icon Only Grid Cell
+// MARK: Icon Only Grid Cell
 
 struct AppIconOnlyView: View {
     let app: AppItem
@@ -72,7 +70,7 @@ struct AppIconOnlyView: View {
     }
 }
 
-// MARK: - List Row
+// MARK: List Row
 
 struct AppListRowView: View {
     let app: AppItem
@@ -111,7 +109,7 @@ struct AppListRowView: View {
     }
 }
 
-// MARK: - Shared Context Menu
+// MARK: Shared Context Menu
 
 struct AppContextMenu: View {
     let app: AppItem
